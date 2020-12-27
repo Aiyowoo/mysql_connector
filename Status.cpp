@@ -28,4 +28,9 @@ const std::string &Status::message() const {
     return message_;
 }
 
+void Status::clear() {
+    code_ = 0;
+    message_.clear();
+}
+
 }

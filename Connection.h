@@ -6,26 +6,20 @@
 #define MYSQL_CONNECTOR_CONNECTION_H
 
 #include "DBConfig.h"
-
+#include "Handler.h"
+#include "Statement.h"
+#include "Status.h"
+#include "PreparedStatement.h"
+#include "Util.h"
 #include <mysql/mysql.h>
 
 namespace db {
-
-class Statement;
-
-class PreparedStatement;
 
 /**
  * 到MYSQL服务器 的链接
  */
 class Connection {
 public:
-    /**
-     * 选项类型
-     */
-    enum OptionType {
-        AUTO_RECONNECT =  1     // 自动重连
-    };
 
     /**
      * 事务的隔离级别
@@ -63,17 +57,10 @@ public:
                  Status &s);
 
     /**
-     * 链接到数据库服务
-     * @param config    配置信息
-     * @param s         是否成功链接
-     */
-    void connect(const DBConfig &config, Status &s);
-
-    /**
      * 关闭链接，并释放资源
      * @param s     是否成功
      */
-    void close(Status &s);
+    void close();
 
     /**
      * 当前是否链接成功
@@ -88,8 +75,8 @@ public:
     bool checkConnected();
 
     /**
-     * 创建一个Statement
-     * @details Statement的生命周期要比Connection的生命周期短
+     * 创建一个用来执行sql的Statement
+     * @param s
      * @return
      */
     Statement createStatement(Status &s);
@@ -112,41 +99,40 @@ public:
 
     /**
      * 设置选项值
-     * @param option        选项的类型
-     * @param optionValue   选项值
+     * @tparam Option
+     * @param option
      * @param s
      */
-    void setOption(OptionType option, int optionValue, Status &s);
+    template<typename Option>
+    void setOption(const Option &option, Status &s) {
+        s.clear();
+        assert(conn_.valid());
+
+        if(mysql_options(conn_.get(), option.name(), option.value()) != 0) {
+            s.assign(Status::ERROR, getLastError(conn_));
+            return;
+        }
+    }
 
     /**
-     * 获取选项的值
-     * @param option        选项的类型
-     * @param optionValue   选项值
+     * 获取选项值
+     * @tparam Option
+     * @param option
      * @param s
      */
-    void getOption(OptionType option, int &optionValue, Status &s);
+    template<typename Option>
+    void getOption(Option &option, Status &s) {
+        s.clear();
+        assert(conn_.valid());
 
-    /**
-     * 设置选项的值
-     * @param option        选项的类型
-     * @param optionValue   选项的值
-     * @param s
-     */
-    void setOption(OptionType option, bool optionValue, Status &s);
+        void *arg = nullptr;
+        if(mysql_get_option(conn_.get(), option.name(), &arg) != 0) {
+            s.assign(Status::ERROR, getLastError(conn_));
+            return;
+        }
 
-    void getOption(OptionType option, bool &optionValue, Status &s);
-
-    /**
-     * 获取事务隔离级别
-     * @param s
-     * @return  事务隔离级别
-     */
-    IsolationLevel getIsolationLevel(Status &s);
-
-    /**
-     * 设置事务隔离级别
-     */
-    void setIsolationLevel(IsolationLevel level, Status &s);
+        option.value(arg);
+    }
 
     /**
      * 设置是否自动提交事务
@@ -164,10 +150,22 @@ public:
 
 private:
     /**
+     * 初始化 handler
+     */
+    void initializeHandler();
+
+private:
+    /**
      * mysql链接句柄
      */
-    MYSQL *mysql_;
+    ConnectionHandler conn_;
 
+    /**
+     * 是否已经链接
+     */
+    bool connected_;
+
+    bool autoCommit_;
 };
 
 }

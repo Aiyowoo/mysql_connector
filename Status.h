@@ -11,7 +11,8 @@ namespace db {
 class Status {
 public:
     enum StatusCode {
-        OK = 0
+        OK = 0,
+        ERROR
     };
 
 public:
@@ -37,6 +38,8 @@ public:
     int code() const;
 
     const std::string &message() const;
+
+    void clear();
 
 private:
     int code_;

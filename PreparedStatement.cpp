@@ -3,3 +3,7 @@
 //
 
 #include "PreparedStatement.h"
+
+namespace db {
+
+}

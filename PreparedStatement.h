@@ -5,26 +5,26 @@
 #ifndef MYSQL_CONNECTOR_PREPAREDSTATEMENT_H
 #define MYSQL_CONNECTOR_PREPAREDSTATEMENT_H
 
+#include "Handler.h"
+#include "PreparedResultSet.h"
 #include <mysql/mysql.h>
 
 namespace db {
 
-/**
- * PreparedStatement的结果集合
- */
-class PreparedResultSet {
-
-};
-
 class PreparedStatement {
 public:
 
-    PreparedStatement(MYSQL_STMT *stmt_);
+    PreparedStatement(MYSQL_STMT *stmt_ = nullptr);
+
     PreparedStatement() = delete;
+
     PreparedStatement(const PreparedStatement &) = delete;
-    PreparedStatement& operator=(const PreparedStatement &) = delete;
+
+    PreparedStatement &operator=(const PreparedStatement &) = delete;
+
     PreparedStatement(PreparedStatement &&);
-    PreparedStatement& operator=(PreparedStatement &&);
+
+    PreparedStatement &operator=(PreparedStatement &&);
 
     ~PreparedStatement();
 
@@ -33,9 +33,10 @@ public:
      * @tparam Args     输入参数类型，暂时只支持 string, Integer
      * @param args
      * @return
+     * @throws 会抛异常
      */
     template<typename ...Args>
-    Status bind(Args ...args);
+    void bind(Args ...args);
 
     /**
      * 执行sql
@@ -49,10 +50,21 @@ public:
      */
     int64_t getAffectedRowsCount();
 
+    /**
+     * 获取执行select语句后的ResultSet
+     * @return
+     */
+    PreparedResultSet getResultSet(Status &s);
+
+    /**
+     * 是否是有效的
+     * @return
+     */
+    bool valid() const;
 
 private:
 
-    MYSQL_STMT *stmt_;
+    StatementHandler stmt_;
 };
 
 }

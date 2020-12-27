@@ -5,20 +5,18 @@
 #ifndef MYSQL_CONNECTOR_STATEMENT_H
 #define MYSQL_CONNECTOR_STATEMENT_H
 
+#include "ResultSet.h"
+
 namespace db {
 
 class Connection;
-
-class ResultSet;
 
 /**
  * 普通的Statement，能用来执行SQL请求
  */
 class Statement {
 public:
-    Statement();
-
-    Statement(Connection *connection);
+    Statement(Connection &conn): conn_(conn) {}
 
     Statement(const Statement &) = delete;
 
@@ -32,7 +30,9 @@ public:
      * 是否是可用的
      * @return
      */
-    operator bool() const;
+    operator bool() const {
+        return valid();
+    }
 
     /**
      * 执行select sql，返回结果集
@@ -63,9 +63,18 @@ public:
      */
     int64_t getLastInsertId(Status &s);
 
+    /**
+     * 是否是有效的
+     * @return
+     */
+    bool valid() const;
+
 private:
 
-    Connection *connection_;
+    /**
+     * mysql链接
+     */
+    Connection &conn_;
 };
 
 }

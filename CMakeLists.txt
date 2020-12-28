@@ -3,10 +3,10 @@ project(mysql_connector)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_library(mysql_connector library.cpp library.h Status.cpp Status.h
-        Connection.cpp Connection.h DBConfig.h
-        Statement.cpp Statement.h
-        PreparedStatement.cpp PreparedStatement.h
-        ResultSet.cpp ResultSet.h
-        PreparedResultSet.cpp PreparedResultSet.h
-        ResultMetaData.cpp ResultMetaData.h Handler.h Option.h Util.h Bind.h)
+add_library(mysql_connector src/Status.cpp include/Status.h
+        src/Connection.cpp include/Connection.h include/DBConfig.h
+        src/Statement.cpp include/Statement.h
+        src/PreparedStatement.cpp include/PreparedStatement.h
+        src/ResultSet.cpp include/ResultSet.h
+        src/PreparedResultSet.cpp include/PreparedResultSet.h
+        src/ResultMetaData.cpp include/ResultMetaData.h include/Handler.h include/Option.h include/Util.h include/Bind.h)

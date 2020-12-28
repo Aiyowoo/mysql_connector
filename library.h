@@ -3,4 +3,4 @@
 
 void hello();
 
-#endif //MYSQL_CONNECTOR_LIBRARY_H
+#endif  // MYSQL_CONNECTOR_LIBRARY_H

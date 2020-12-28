@@ -10,43 +10,39 @@
 namespace db {
 
 class Status {
-public:
-    enum StatusCode {
-        OK = 0,
-        ERROR
-    };
+ public:
+  enum StatusCode { OK = 0, ERROR };
 
-public:
+ public:
+  Status(int code);
 
-    Status(int code);
+  Status(int code, const std::string& message);
 
-    Status(int code, const std::string &message);
+  Status(const Status&) = default;
 
-    Status(const Status &) = default;
+  Status& operator=(const Status&) = default;
 
-    Status &operator=(const Status &) = default;
+  Status(Status&&) = default;
 
-    Status(Status &&) = default;
+  Status& operator=(Status&&) = default;
 
-    Status &operator=(Status &&) = default;
+  ~Status() = default;
 
-    ~Status() = default;
+  operator bool() const;
 
-    operator bool() const;
+  void assign(int code, const std::string& message);
 
-    void assign(int code, const std::string &message);
+  int code() const;
 
-    int code() const;
+  const std::string& message() const;
 
-    const std::string &message() const;
+  void clear();
 
-    void clear();
-
-private:
-    int code_;
-    std::string message_;
+ private:
+  int code_;
+  std::string message_;
 };
 
-}
+}  // namespace db
 
-#endif //MYSQL_CONNECTOR_STATUS_H
+#endif  // MYSQL_CONNECTOR_STATUS_H

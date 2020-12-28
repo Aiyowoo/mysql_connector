@@ -4,6 +4,4 @@
 
 #include "PreparedStatement.h"
 
-namespace db {
-
-}
+namespace db {}

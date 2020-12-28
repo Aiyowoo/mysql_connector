@@ -4,6 +4,4 @@
 
 #include "Statement.h"
 
-namespace db {
-
-}
+namespace db {}

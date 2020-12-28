@@ -307,7 +307,7 @@ int mysqlTypeToDataType(int mysqlFieldType) {
  * @return
  */
 enum_field_types dataTypeToMysqlType(int dataType) {
-    switch(dataType) {
+    switch (dataType) {
         case DataType::SIGNED_INTEGER:
         case DataType::UNSIGNED_INTEGER:
             return MYSQL_TYPE_LONGLONG;

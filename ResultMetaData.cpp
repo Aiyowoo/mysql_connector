@@ -4,7 +4,4 @@
 
 #include "ResultMetaData.h"
 
-
-namespace db {
-
-}
+namespace db {}

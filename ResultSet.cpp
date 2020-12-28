@@ -4,7 +4,4 @@
 
 #include "ResultSet.h"
 
-
-namespace db {
-
-}
+namespace db {}

@@ -6,3 +6,6 @@ IndentPPDirectives: AfterHash
 IndentCaseLabels: false
 AlwaysBreakTemplateDeclarations: false
 DerivePointerAlignment: false
+TabWidth: 4
+IndentWidth: 4
+AccessModifierOffset: -4

@@ -14,8 +14,8 @@ Status::Status(int code, const std::string& message)
 Status::operator bool() const { return code_ == StatusCode::OK; }
 
 void Status::assign(int code, const std::string& message) {
-  code_ = code;
-  message_ = message;
+    code_ = code;
+    message_ = message;
 }
 
 int Status::code() const { return code_; }
@@ -23,8 +23,8 @@ int Status::code() const { return code_; }
 const std::string& Status::message() const { return message_; }
 
 void Status::clear() {
-  code_ = 0;
-  message_.clear();
+    code_ = 0;
+    message_.clear();
 }
 
 }  // namespace db

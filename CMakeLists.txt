@@ -1,7 +1,11 @@
-# cmake_minimum_required(VERSION <specify CMake version here>)
+cmake_minimum_required(VERSION 3.10)
 project(mysql_connector)
 
 set(CMAKE_CXX_STANDARD 11)
+
+option(WITH_TEST "generate tests" ON)
+
+find_package(fmt CONFIG REQUIRED)
 
 add_library(mysql_connector src/Status.cpp include/Status.h
         src/Connection.cpp include/Connection.h include/DBConfig.h
@@ -10,3 +14,8 @@ add_library(mysql_connector src/Status.cpp include/Status.h
         src/ResultSet.cpp include/ResultSet.h
         src/PreparedResultSet.cpp include/PreparedResultSet.h
         src/ResultMetaData.cpp include/ResultMetaData.h include/Handler.h include/Option.h include/Util.h include/Bind.h)
+target_link_libraries(mysql_connector PRIVATE fmt::fmt-header-only)
+
+if (${WITH_TEST})
+    add_subdirectory(test)
+endif (${WITH_TEST})

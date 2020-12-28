@@ -12,7 +12,7 @@
 
 namespace db {
 
-std::string getLastError(const ConnectionHandler &handler) {
+inline std::string getLastError(const ConnectionHandler &handler) {
     if(!handler.valid()) {
         return "";
     }
@@ -20,7 +20,7 @@ std::string getLastError(const ConnectionHandler &handler) {
     return std::to_string(mysql_errno(handler.get())) + ':' + mysql_error(handler.get());
 }
 
-std::string getLastError(const StatementHandler &handler) {
+inline std::string getLastError(const StatementHandler &handler) {
     if(!handler.valid()) {
         return "";
     }

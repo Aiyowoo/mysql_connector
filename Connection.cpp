@@ -10,15 +10,15 @@
 namespace db {
 
 Connection::Connection(): connected_(false) {
-    initialize_handler();
+    initializeHandler();
 }
 
-Connection::Connection(Connection &&other): conn_(other.conn_), connected_(other.connected_) {
+Connection::Connection(Connection &&other): conn_(std::move(other.conn_)), connected_(other.connected_) {
     other.connected_ = false;
 }
 
 Connection &Connection::operator=(Connection &&other) {
-    conn_ = other.conn_;
+    conn_ = std::move(other.conn_);
     connected_ = other.connected_;
     other.connected_ = false;
 }

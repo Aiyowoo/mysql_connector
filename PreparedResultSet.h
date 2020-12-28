@@ -9,7 +9,6 @@
 #include "Bind.h"
 
 #include <mysql/mysql.h>
-#include <mysql/decimal.h>
 
 #include <stdexcept>
 #include <memory>
@@ -33,7 +32,7 @@ public:
     PreparedResultSet &operator=(const PreparedResultSet &) = delete;
 
     PreparedResultSet(PreparedResultSet &&other)
-            : stmt_(other.stmt_), colNameIndexMapping_(other.colNameIndexMapping_),
+            : stmt_(other.stmt_),
               currentRowPos_(other.currentRowPos_), metaData_(other.metaData_), resultBinds_(other.resultBinds_) {
         PreparedResultSet tmp;
         tmp.swap(other);
@@ -121,7 +120,7 @@ public:
     }
 
     int32_t getInt32(size_t index) const {
-        return resultBinds_.getValue(fieldNameToIndex(name)).getInt64();
+        return resultBinds_.getValue(index).getInt64();
     }
 
     int32_t getInt32(const std::string &name) const {
@@ -133,7 +132,7 @@ public:
     }
 
     int64_t getInt64(const std::string &name) const {
-        return getInt64(fieldNameToIndex(name)).getInt64();
+        return getInt64(fieldNameToIndex(name));
     }
 
     double getDouble(size_t index) const {
@@ -141,7 +140,7 @@ public:
     }
 
     double getDouble(const std::string &name) const {
-        return getDouble(fieldNameToIndex(name)).getDouble();
+        return getDouble(fieldNameToIndex(name));
     }
 
     Value getValue(size_t index) const {
@@ -155,7 +154,6 @@ public:
     void swap(PreparedResultSet &other) {
         using std::swap;
         swap(stmt_, other.stmt_);
-        swap(colNameIndexMapping_, other.colNameIndexMapping_);
         swap(currentRowPos_, other.currentRowPos_);
         swap(metaData_, other.metaData_);
         swap(resultBinds_, other.resultBinds_);

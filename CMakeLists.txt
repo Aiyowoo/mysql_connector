@@ -4,6 +4,7 @@ project(mysql_connector)
 set(CMAKE_CXX_STANDARD 11)
 
 option(WITH_TEST "generate tests" ON)
+option(WITH_DOC "generate documents" ON)
 
 find_package(fmt CONFIG REQUIRED)
 
@@ -19,3 +20,7 @@ target_link_libraries(mysql_connector PRIVATE fmt::fmt-header-only)
 if (${WITH_TEST})
     add_subdirectory(test)
 endif (${WITH_TEST})
+
+if (${WITH_DOC})
+    add_subdirectory(doc)
+endif (${WITH_DOC})

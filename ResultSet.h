@@ -36,7 +36,7 @@ public:
     ResultSet &operator=(const ResultSet &) = delete;
 
     ResultSet(ResultSet &&other)
-            : res_(other.res_), currentRow_(other.currentRow_),
+            : res_(std::move(other.res_)), currentRow_(other.currentRow_),
               metaData_(other.metaData_) {
         other.res_ = nullptr;
         currentRow_ = nullptr;
@@ -63,12 +63,12 @@ public:
     void assign(MYSQL_RES *res) {
         clear();
 
-        res_ = res;
+        res_.assign(res);
 
-        if (res_) {
+        if (res_.valid()) {
             // 初始化元数据信息
-            int fieldCount = mysql_num_fields(res_);
-            MYSQL_FIELD *fields = mysql_fetch_fields(res_);
+            int fieldCount = mysql_num_fields(res_.get());
+            MYSQL_FIELD *fields = mysql_fetch_fields(res_.get());
             metaData_.assign(fields, fieldCount);
         } else {
             metaData_.assign(nullptr, 0);
@@ -110,7 +110,7 @@ public:
     /**
      * 回绕到最初的行
      */
-    void seekBeg(Status &s) {
+    void rewind(Status &s) {
         s.clear();
 
         if (!valid()) {
@@ -125,7 +125,7 @@ public:
      * 是否是有效的， 是否有数据
      * @return
      */
-    bool valid() {
+    bool valid() const {
         return res_.valid();
     }
 
@@ -134,7 +134,7 @@ public:
      * @param index
      * @return
      */
-    std::string getString(size_t index) {
+    std::string getString(size_t index) const {
         checkIndexValid(index);
 
         return currentRow_[index] ? currentRow_[index] : "";
@@ -145,37 +145,37 @@ public:
      * @param name
      * @return
      */
-    std::string getString(const std::string &name) {
+    std::string getString(const std::string &name) const {
         return getString(fieldNameToIndex(name));
     }
 
-    int32_t getInt32(size_t index) {
+    int32_t getInt32(size_t index) const {
         checkIndexValid(index);
 
         return currentRow_[index] ? atoi(currentRow_[index]) : 0;
     }
 
-    int32_t getInt32(const std::string &name) {
+    int32_t getInt32(const std::string &name) const {
         return getInt32(fieldNameToIndex(name));
     }
 
-    int64_t getInt64(size_t index) {
+    int64_t getInt64(size_t index) const {
         checkIndexValid(index);
 
         return currentRow_[index] ? atoll(currentRow_[index]) : 0;
     }
 
-    int64_t getInt64(const std::string &name) {
+    int64_t getInt64(const std::string &name) const {
         return getInt64(fieldNameToIndex(name));
     }
 
-    double getDouble(size_t index) {
+    double getDouble(size_t index) const {
         checkIndexValid(index);
 
         return currentRow_[index] ? atof(currentRow_[index]) : 0;
     }
 
-    double getDouble(const std::string &name) {
+    double getDouble(const std::string &name) const {
         return getDouble(fieldNameToIndex(name));
     }
 
@@ -190,15 +190,15 @@ public:
         switch (metaData_.getFieldType(index)) {
             case DataType::SIGNED_INTEGER:
             case DataType::UNSIGNED_INTEGER:
-                return Value(DataType::SIGNED_INTEGER, getInt64(index));
+                return Value(getInt64(index));
 
             case DataType::DOUBLE:
-                return Value(DataType::DOUBLE, getDouble(index));
+                return Value(getDouble(index));
 
             case DataType::STRING:
             case DataType::UNKNOWN:
             default:
-                return Value(DataType::STRING, getString(index));
+                return Value(getString(index));
         }
     }
 
@@ -233,7 +233,7 @@ private:
     /**
      * 正在访问的当前行
      */
-    MYSQL_ROW *currentRow_;
+    MYSQL_ROW currentRow_;
 
     /**
      * 元数据信息

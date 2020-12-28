@@ -11,6 +11,7 @@
 #include <string>
 #include <stdexcept>
 #include <map>
+#include <assert.h>
 
 namespace db {
 
@@ -64,7 +65,7 @@ public:
         assign(value);
     }
 
-    Value(const std::string &s) {
+    Value(const std::string &value) {
         assign(value);
     }
 
@@ -89,7 +90,7 @@ public:
     }
 
     void assign(int64_t value) {
-        valueType = DataType::SIGNED_INTEGER;
+        valueType_ = DataType::SIGNED_INTEGER;
         value_.i64 = value;
         s_ = std::to_string(value);
     }
@@ -149,7 +150,7 @@ public:
         return 0;
     }
 
-    uin32_t getUInt32() const {
+    uint32_t getUInt32() const {
         switch (valueType_) {
             case DataType::SQLNULL:
                 return 0;
@@ -272,7 +273,7 @@ int mysqlTypeToDataType(int mysqlFieldType) {
             return DataType::DOUBLE;
 
         case MYSQL_TYPE_NULL:
-            return sql::DataType::SQLNULL;
+            return DataType::SQLNULL;
 
         case MYSQL_TYPE_BIT:
         case MYSQL_TYPE_DATE:
@@ -301,6 +302,34 @@ int mysqlTypeToDataType(int mysqlFieldType) {
 }
 
 /**
+ * 将data type转换成 mysql的 enum_field_types
+ * @param dataType
+ * @return
+ */
+enum_field_types dataTypeToMysqlType(int dataType) {
+    switch(dataType) {
+        case DataType::SIGNED_INTEGER:
+        case DataType::UNSIGNED_INTEGER:
+            return MYSQL_TYPE_LONGLONG;
+
+        case DataType::DOUBLE:
+            return MYSQL_TYPE_DOUBLE;
+
+        case DataType::STRING:
+            return MYSQL_TYPE_VAR_STRING;
+
+        case DataType::SQLNULL:
+            return MYSQL_TYPE_NULL;
+
+        case DataType::UNKNOWN:
+        default:
+            assert(false);
+            throw std::invalid_argument("unknown data type");
+    }
+}
+
+
+/**
  * ResultSet的元数据信息
  *
  * @warning 生命周期与ResultSet相同，使用时要保证ResultSet存活
@@ -308,7 +337,7 @@ int mysqlTypeToDataType(int mysqlFieldType) {
 class ResultMetaData {
 public:
 
-    ResultMetaData() : fieldS_(nullptr), fieldCount_(0) {}
+    ResultMetaData() : fields_(nullptr), fieldCount_(0) {}
 
     ResultMetaData(MYSQL_FIELD *fields, size_t fieldCount) : fields_(fields), fieldCount_(fieldCount) {
         initNameIndex();

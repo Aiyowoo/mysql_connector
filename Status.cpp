@@ -12,7 +12,7 @@ Status::Status(int code, const std::string &message) : code_(code), message_(mes
 }
 
 Status::operator bool() const {
-    return code == StatusCode::OK;
+    return code_ == StatusCode::OK;
 }
 
 void Status::assign(int code, const std::string &message) {

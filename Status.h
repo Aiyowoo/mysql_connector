@@ -5,6 +5,7 @@
 #ifndef MYSQL_CONNECTOR_STATUS_H
 #define MYSQL_CONNECTOR_STATUS_H
 
+#include <string>
 
 namespace db {
 

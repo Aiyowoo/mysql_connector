@@ -9,6 +9,7 @@
 #include <mysql/mysql.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 namespace db {
 
@@ -32,7 +33,7 @@ public:
      * @param metaData
      */
     Bind(const ResultMetaData &metaData) : binds_(nullptr), bindCount_(0) {
-        assign(metadata);
+        assign(metaData);
     }
 
     ~Bind() {
@@ -76,7 +77,7 @@ public:
             binds_[i].is_null = new my_bool;
             *binds_[i].is_null = false;
 
-            binds_[i].buffer_type = metaData.getOrgFieldType(i);
+            binds_[i].buffer_type = static_cast<enum_field_types>(metaData.getOrgFieldType(i));
         }
     }
 
@@ -121,9 +122,9 @@ public:
         *reinterpret_cast<int64_t *>(ptr) = value;
 
         clearAllocatedBuffer(&binds_[index]);
-        binds_[index]->buffer = ptr;
+        binds_[index].buffer = ptr;
         binds_[index].buffer_length = 0;
-        binds_[index]->buffer_type = dataTypeToMysqlType(DataType::SIGNED_INTEGER);
+        binds_[index].buffer_type = static_cast<enum_field_types>(dataTypeToMysqlType(DataType::SIGNED_INTEGER));
         binds_[index].is_null_value = 0;
     }
 
@@ -135,9 +136,9 @@ public:
         *reinterpret_cast<int64_t *>(ptr) = value;
 
         clearAllocatedBuffer(&binds_[index]);
-        binds_[index]->buffer = ptr;
+        binds_[index].buffer = ptr;
         binds_[index].buffer_length = 0;
-        binds_[index]->buffer_type = dataTypeToMysqlType(DataType::SIGNED_INTEGER);
+        binds_[index].buffer_type = dataTypeToMysqlType(DataType::SIGNED_INTEGER);
         binds_[index].is_null_value = 0;
     }
 
@@ -149,13 +150,13 @@ public:
         strcpy(ptr, value.c_str());
 
         clearAllocatedBuffer(&binds_[index]);
-        binds_[index]->buffer = ptr;
+        binds_[index].buffer = ptr;
         binds_[index].buffer_length = 0;
-        binds_[index]->buffer_type = dataTypeToMysqlType(DataType::STRING);
+        binds_[index].buffer_type = dataTypeToMysqlType(DataType::STRING);
         binds_[index].is_null_value = 0;
     }
 
-    Value getValue(size_t index) {
+    Value getValue(size_t index) const {
         checkIndexValid(index);
 
         MYSQL_BIND *bind = &binds_[index];
@@ -168,7 +169,7 @@ public:
         switch (mysqlTypeToDataType(bind->buffer_type)) {
             case DataType::SIGNED_INTEGER: {
                 int64_t val = 0;
-                switch (bind->length) {
+                switch (*bind->length) {
                     case 2:
                         val = *reinterpret_cast<int16_t *>(bind->buffer);
                         break;
@@ -179,12 +180,12 @@ public:
                         val = *reinterpret_cast<int64_t *>(bind->buffer);
                         break;
                 }
-                return Value(DataType::SIGNED_INTEGER, val);
+                return Value(val);
             }
 
             case DataType::UNSIGNED_INTEGER: {
                 uint64_t val = 0;
-                switch (bind->length) {
+                switch (*bind->length) {
                     case 2:
                         val = *reinterpret_cast<uint16_t *>(bind->buffer);
                         break;
@@ -195,17 +196,18 @@ public:
                         val = *reinterpret_cast<uint64_t *>(bind->buffer);
                         break;
                 }
-                return Value(DataType::UNSIGNED_INTEGER, val);
+                return Value(val);
             }
 
             case DataType::STRING: {
-                std::string val(bind->buffer,bind->buffer + *bind->length);
-                return Value(DataType::STRING, val);
+                char *ptr = reinterpret_cast<char*>(bind->buffer);
+                std::string val(ptr,ptr + *bind->length);
+                return Value(val);
             }
 
             case DataType::DOUBLE: {
                 double val = 0;
-                switch (bind->length) {
+                switch (*bind->length) {
                     case 4:
                         val = *reinterpret_cast<float *>(bind->buffer);
                         break;
@@ -213,7 +215,7 @@ public:
                         val = *reinterpret_cast<double *>(bind->buffer);
                         break;
                 }
-                return Value(DataType::DOUBLE, val);
+                return Value(val);
             }
 
             case DataType::SQLNULL:
@@ -235,7 +237,8 @@ private:
         }
 
         if (bind->buffer) {
-            delete[] bind->buffer;
+            char *ptr = reinterpret_cast<char*>(bind->buffer);
+            delete[] ptr;
             bind->buffer = nullptr;
         }
 

@@ -7,6 +7,8 @@
 
 #include <mysql/mysql.h>
 
+#include <utility>
+
 /**
  * 包裹的 各种handler
  */
@@ -23,7 +25,7 @@ public:
 
     ConnectionHandler(const ConnectionHandler&) = delete;
 
-    ConnectionHandler& operator(const ConnectionHandler&) = delete;
+    ConnectionHandler& operator=(const ConnectionHandler&) = delete;
 
     ConnectionHandler(ConnectionHandler &&other) {
         mysql_ = other.mysql_;
@@ -57,7 +59,7 @@ public:
         swap(mysql_, other.mysql_);
     }
 
-    MYSQL* get() {
+    MYSQL* get() const {
         return mysql_;
     }
 
@@ -79,7 +81,7 @@ inline void swap(ConnectionHandler &lhs, ConnectionHandler &rhs) {
 class StatementHandler {
 public:
 
-    StatementHandler(MYSQL_STMT *stmt): stmt_(stmt) {}
+    StatementHandler(MYSQL_STMT *stmt = nullptr): stmt_(stmt) {}
 
     StatementHandler(const StatementHandler &) = delete;
 
@@ -112,7 +114,7 @@ public:
         swap(stmt_, other.stmt_);
     }
 
-    MYSQL_STMT* get() {
+    MYSQL_STMT* get() const {
         return stmt_;
     }
 
@@ -168,6 +170,11 @@ public:
 
     MYSQL_RES* get() {
         return res_;
+    }
+
+    void assign(MYSQL_RES *res) {
+        close();
+        res_ = res;
     }
 
     bool valid() const {

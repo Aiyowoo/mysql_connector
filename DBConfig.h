@@ -5,6 +5,8 @@
 #ifndef MYSQL_CONNECTOR_DBCONFIG_H
 #define MYSQL_CONNECTOR_DBCONFIG_H
 
+#include <string>
+
 namespace db {
 
 struct DBConfig {

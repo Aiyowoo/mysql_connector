@@ -22,153 +22,162 @@ namespace db {
  * @warning 使用时需要保证Connection存活
  */
 class PreparedStatement {
- public:
-  PreparedStatement(MYSQL_STMT* stmt = nullptr) : stmt_(stmt) {}
+public:
+    PreparedStatement(MYSQL_STMT* stmt = nullptr) : stmt_(stmt) {}
 
-  PreparedStatement(const PreparedStatement&) = delete;
+    PreparedStatement(const PreparedStatement&) = delete;
 
-  PreparedStatement& operator=(const PreparedStatement&) = delete;
+    PreparedStatement& operator=(const PreparedStatement&) = delete;
 
-  PreparedStatement(PreparedStatement&& other)
-      : stmt_(std::move(other.stmt_)) {}
+    PreparedStatement(PreparedStatement&& other)
+        : stmt_(std::move(other.stmt_)) {}
 
-  PreparedStatement& operator=(PreparedStatement&& other) {
-    PreparedStatement tmp;
-    swap(other);
-    other.swap(tmp);
-  }
-
-  ~PreparedStatement() { close(); }
-
-  void swap(PreparedStatement& other) {
-    using std::swap;
-    swap(stmt_, other.stmt_);
-  }
-
-  /**
-   * 绑定输入参数
-   * @tparam Args     输入参数类型，暂时只支持 string, Integer
-   * @param args 最后一个参数如果是status，则报错信息放在status中，否则抛异常
-   * @return
-   * @throws 会抛异常
-   */
-  template <typename... Args> void bind(Args&&... args) {
-    checkValid();
-
-    size_t paramCount = mysql_stmt_param_count(stmt_.get());
-    params_.assign(paramCount);
-
-    bindParams(0, std::forward<Args>(args)...);
-  }
-
-  /**
-   * 执行sql
-   * @param s
-   */
-  void execute(Status& s) {
-    s.clear();
-
-    checkValid(s);
-    if (!s) {
-      return;
+    PreparedStatement& operator=(PreparedStatement&& other) {
+        PreparedStatement tmp;
+        swap(other);
+        other.swap(tmp);
     }
 
-    size_t expectedParamCount = mysql_stmt_param_count(stmt_.get());
-    if (expectedParamCount != params_.getBindCount()) {
-      s.assign(Status::ERROR, "params not bind");
-      return;
+    ~PreparedStatement() { close(); }
+
+    void swap(PreparedStatement& other) {
+        using std::swap;
+        swap(stmt_, other.stmt_);
     }
 
-    if (mysql_stmt_execute(stmt_.get()) != 0) {
-      s.assign(Status::ERROR, "statement execute failed");
-      return;
-    }
-  }
+    /**
+     * 绑定输入参数
+     * @tparam Args     输入参数类型，暂时只支持 string, Integer
+     * @param args 最后一个参数如果是status，则报错信息放在status中，否则抛异常
+     * @return
+     * @throws 会抛异常
+     */
+    template <typename... Args> void bind(Args&&... args) {
+        checkValid();
 
-  /**
-   * 获取execute执行后，影响到的行数
-   * @return
-   */
-  int64_t getAffectedRowsCount() {
-    checkValid();
-    return mysql_stmt_affected_rows(stmt_.get());
-  }
+        size_t paramCount = mysql_stmt_param_count(stmt_.get());
+        params_.assign(paramCount);
 
-  /**
-   * 获取执行select语句后的ResultSet
-   * @return
-   */
-  PreparedResultSet getResultSet(Status& s) {
-    s.clear();
-
-    checkValid(s);
-    if (!s) {
-      return PreparedResultSet();
+        bindParams(0, std::forward<Args>(args)...);
     }
 
-    return PreparedResultSet(stmt_.get());
-  }
+    /**
+     * 执行sql
+     * @param s
+     */
+    void execute(Status& s) {
+        s.clear();
 
-  /**
-   * 是否是有效的
-   * @return
-   */
-  bool valid() const { return stmt_.valid(); }
+        checkValid(s);
+        if (!s) {
+            return;
+        }
 
-  /**
-   * 释放资源，并不会关闭Connection
-   */
-  void close() { stmt_.close(); }
+        size_t expectedParamCount = mysql_stmt_param_count(stmt_.get());
+        if (expectedParamCount != params_.getBindCount()) {
+            s.assign(Status::ERROR, "params not bind");
+            return;
+        }
 
- private:
-  void checkValid() const {
-    if (!valid()) {
-      throw std::runtime_error("statement is invalid");
-    }
-  }
-
-  void checkValid(Status& s) const {
-    s.clear();
-    if (!valid()) {
-      s.assign(Status::ERROR, "statement is invalid");
-    }
-  }
-
-  template <typename T, typename... Args>
-  void bindParams(int index, T&& val, Args&&... args) {
-    params_.setValue(index, std::forward<T>(val));
-
-    bindParams(index + 1, std::forward<Args>(args)...);
-  }
-
-  template <typename T> void bindParams(int index, T&& val) {
-    params_.setValue(index, std::forward<T>(val));
-    if (index + 1 != params_.getBindCount()) {
-      throw std::invalid_argument("params count not invalid");
+        if (mysql_stmt_execute(stmt_.get()) != 0) {
+            s.assign(Status::ERROR, fmt::format("statement execute failed, ",
+                                                getLastError(stmt_.get())));
+            return;
+        }
     }
 
-    if (!mysql_stmt_bind_param(stmt_.get(), params_.getBinds())) {
-      throw std::runtime_error("failed to bind params");
-    }
-  }
-
-  template <typename T> void bindParams(int index, Status& s) {
-    s.clear();
-
-    if (index != params_.getBindCount()) {
-      s.assign(Status::ERROR, "params count not invalid");
-      return;
+    /**
+     * 获取execute执行后，影响到的行数
+     * @return
+     */
+    int64_t getAffectedRowsCount() {
+        checkValid();
+        return mysql_stmt_affected_rows(stmt_.get());
     }
 
-    if (!mysql_stmt_bind_param(stmt_.get(), params_.getBinds())) {
-      throw std::runtime_error("failed to bind params");
+    /**
+     * 获取执行select语句后的ResultSet
+     * @return
+     */
+    PreparedResultSet getResultSet(Status& s) {
+        s.clear();
+
+        checkValid(s);
+        if (!s) {
+            return PreparedResultSet();
+        }
+
+        return PreparedResultSet(stmt_.get());
     }
-  }
 
- private:
-  StatementHandler stmt_;
+    /**
+     * 是否是有效的
+     * @return
+     */
+    bool valid() const { return stmt_.valid(); }
 
-  Bind params_;
+    /**
+     * 释放资源，并不会关闭Connection
+     */
+    void close() { stmt_.close(); }
+
+private:
+    void checkValid() const {
+        if (!valid()) {
+            throw std::runtime_error("statement is invalid");
+        }
+    }
+
+    void checkValid(Status& s) const {
+        s.clear();
+        if (!valid()) {
+            s.assign(Status::ERROR, "statement is invalid");
+        }
+    }
+
+    template <typename T, typename... Args>
+    void bindParams(int index, T&& val, Args&&... args) {
+        params_.setValue(index, std::forward<T>(val));
+
+        bindParams(index + 1, std::forward<Args>(args)...);
+    }
+
+    template <typename T> void bindParams(int index, T&& val) {
+        params_.setValue(index, std::forward<T>(val));
+        if (index + 1 != params_.getBindCount()) {
+            throw std::invalid_argument(
+                fmt::format("params count %d not match expected %d", index + 1,
+                            params_.getBindCount()));
+        }
+
+        if (!mysql_stmt_bind_param(stmt_.get(), params_.getBinds())) {
+            throw std::runtime_error(fmt::format(
+                "failed to bind parameters, %s", getLastError(stmt_)));
+        }
+    }
+
+    template <typename T> void bindParams(int index, Status& s) {
+        s.clear();
+
+        if (index != params_.getBindCount()) {
+            s.assign(Status::ERROR,
+                     fmt::format("params count %d not match expected %d",
+                                 index + 1, params_.getBindCount()));
+            return;
+        }
+
+        if (!mysql_stmt_bind_param(stmt_.get(), params_.getBinds())) {
+            throw std::runtime_error("failed to bind params");
+            s.assign(Status::RUNTIME_ERROR,
+                     fmt::format("failed to bind parameters, %s",
+                                 getLastError(stmt_)));
+        }
+    }
+
+private:
+    StatementHandler stmt_;
+
+    Bind params_;
 };
 
 }  // namespace db

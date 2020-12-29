@@ -9,12 +9,17 @@
 
 namespace db {
 
+/**
+ * 报错信息
+ */
 class Status {
 public:
-    enum StatusCode { OK = 0, ERROR };
+    enum StatusCode { OK = 0, ERROR, RUNTIME_ERROR, UNKNOWN_ERROR };
 
 public:
-    Status(int code);
+    Status();
+
+    explicit Status(int code);
 
     Status(int code, const std::string& message);
 
@@ -39,7 +44,14 @@ public:
     void clear();
 
 private:
+    /**
+     * 返回码
+     */
     int code_;
+
+    /**
+     * 错误信息
+     */
     std::string message_;
 };
 

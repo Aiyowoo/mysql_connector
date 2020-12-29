@@ -2,11 +2,11 @@
 // Created by m8792 on 2020/12/17.
 //
 
-#include "../include/Connection.h"
+#include "Connection.h"
 
-#include "../include/Statement.h"
-#include "../include/Status.h"
-#include "../include/Util.h"
+#include "Statement.h"
+#include "Status.h"
+#include "Util.h"
 
 namespace db {
 
@@ -43,7 +43,9 @@ void Connection::connect(const std::string& host, unsigned short port,
     if (nullptr == mysql_real_connect(conn_.get(), host.c_str(), user.c_str(),
                                       password.c_str(), nullptr, port, nullptr,
                                       0)) {
-        s.assign(Status::ERROR, getLastError(conn_));
+        s.assign(Status::RUNTIME_ERROR,
+                 fmt::format("failed to connect to %s@%s due to %s", user, host,
+                             getLastError(conn_.get())));
         return;
     }
 
@@ -83,7 +85,8 @@ PreparedStatement Connection::prepareStatement(const std::string& sql,
 
     PreparedStatement stmt(mysql_stmt_init(conn_.get()));
     if (!stmt.valid()) {
-        s.assign(Status::ERROR, getLastError(conn_.get()));
+        s.assign(Status::ERROR, fmt::format("create stmt failed, %s",
+                                            getLastError(conn_.get())));
         return stmt;
     }
     return stmt;
@@ -98,7 +101,8 @@ void Connection::selectSchema(const std::string& schema, Status& s) {
     }
 
     if (mysql_select_db(conn_.get(), schema.c_str()) != 0) {
-        s.assign(Status::ERROR, getLastError(conn_));
+        s.assign(Status::ERROR,
+                 fmt::format("select db failed, %s", getLastError(conn_)));
         return;
     }
 }
@@ -112,7 +116,9 @@ void Connection::setAutoCommit(bool autoCommit, Status& s) {
     }
 
     if (!mysql_autocommit(conn_.get(), autoCommit) != 0) {
-        s.assign(Status::ERROR, getLastError(conn_));
+        s.assign(
+            Status::RUNTIME_ERROR,
+            fmt::format("set auto commit failed, %s", getLastError(conn_)));
         return;
     }
 

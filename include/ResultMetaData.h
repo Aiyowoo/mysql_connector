@@ -5,13 +5,15 @@
 #ifndef MYSQL_CONNECTOR_RESULTMETADATA_H
 #define MYSQL_CONNECTOR_RESULTMETADATA_H
 
+#include <assert.h>
+#include <fmt/format.h>
 #include <mysql/mysql.h>
 #include <mysql/mysql_com.h>
 #include <stdint.h>
-#include <string>
-#include <stdexcept>
+
 #include <map>
-#include <assert.h>
+#include <stdexcept>
+#include <string>
 
 namespace db {
 
@@ -40,42 +42,25 @@ public:
  */
 class Value {
 public:
+    Value() : valueType_(DataType::SQLNULL) { value_.d = 0; }
 
-    Value() : valueType_(DataType::SQLNULL) {
-        value_.d = 0;
-    }
+    Value(int32_t value) { assign(value); }
 
-    Value(int32_t value) {
-        assign(value);
-    }
+    Value(uint32_t value) { assign(value); }
 
-    Value(uint32_t value) {
-        assign(value);
-    }
+    Value(int64_t value) { assign(value); }
 
-    Value(int64_t value) {
-        assign(value);
-    }
+    Value(uint64_t value) { assign(value); }
 
-    Value(uint64_t value) {
-        assign(value);
-    }
+    Value(double value) { assign(value); }
 
-    Value(double value) {
-        assign(value);
-    }
-
-    Value(const std::string &value) {
-        assign(value);
-    }
+    Value(const std::string& value) { assign(value); }
 
     /**
      * C字符串构造一个Value类型
      * @param str
      */
-    Value(const char *str) {
-        assign(str);
-    }
+    Value(const char* str) { assign(str); }
 
     void assign(int32_t value) {
         valueType_ = DataType::SIGNED_INTEGER;
@@ -107,13 +92,13 @@ public:
         s_ = std::to_string(value);
     }
 
-    void assign(const std::string &value) {
+    void assign(const std::string& value) {
         valueType_ = DataType::STRING;
         value_.d = 0;
         s_ = value;
     }
 
-    void assign(const char *str) {
+    void assign(const char* str) {
         valueType_ = DataType::STRING;
         value_.d = 0;
         s_ = str ? str : "";
@@ -124,26 +109,24 @@ public:
      * @return 值的类型
      * @see db::DataType
      */
-    int getType() const {
-        return valueType_;
-    }
+    int getType() const { return valueType_; }
 
     int32_t getInt32() const {
         switch (valueType_) {
-            case DataType::SQLNULL:
-                return 0;
+        case DataType::SQLNULL:
+            return 0;
 
-            case DataType::SIGNED_INTEGER:
-                return static_cast<int32_t>(value_.i64);
+        case DataType::SIGNED_INTEGER:
+            return static_cast<int32_t>(value_.i64);
 
-            case DataType::UNSIGNED_INTEGER:
-                return static_cast<int32_t>(value_.u64);
+        case DataType::UNSIGNED_INTEGER:
+            return static_cast<int32_t>(value_.u64);
 
-            case DataType::DOUBLE:
-                return static_cast<int32_t>(value_.d);
+        case DataType::DOUBLE:
+            return static_cast<int32_t>(value_.d);
 
-            case DataType::STRING:
-                return atoll(s_.c_str());
+        case DataType::STRING:
+            return atoll(s_.c_str());
         }
 
         assert(false);
@@ -152,20 +135,20 @@ public:
 
     uint32_t getUInt32() const {
         switch (valueType_) {
-            case DataType::SQLNULL:
-                return 0;
+        case DataType::SQLNULL:
+            return 0;
 
-            case DataType::SIGNED_INTEGER:
-                return static_cast<uint32_t>(value_.i64);
+        case DataType::SIGNED_INTEGER:
+            return static_cast<uint32_t>(value_.i64);
 
-            case DataType::UNSIGNED_INTEGER:
-                return static_cast<uint32_t>(value_.u64);
+        case DataType::UNSIGNED_INTEGER:
+            return static_cast<uint32_t>(value_.u64);
 
-            case DataType::DOUBLE:
-                return static_cast<uint32_t>(value_.d);
+        case DataType::DOUBLE:
+            return static_cast<uint32_t>(value_.d);
 
-            case DataType::STRING:
-                return atoll(s_.c_str());
+        case DataType::STRING:
+            return atoll(s_.c_str());
         }
 
         assert(false);
@@ -174,20 +157,20 @@ public:
 
     int64_t getInt64() const {
         switch (valueType_) {
-            case DataType::SQLNULL:
-                return 0;
+        case DataType::SQLNULL:
+            return 0;
 
-            case DataType::SIGNED_INTEGER:
-                return value_.i64;
+        case DataType::SIGNED_INTEGER:
+            return value_.i64;
 
-            case DataType::UNSIGNED_INTEGER:
-                return value_.i64;
+        case DataType::UNSIGNED_INTEGER:
+            return value_.i64;
 
-            case DataType::DOUBLE:
-                return static_cast<int64_t>(value_.d);
+        case DataType::DOUBLE:
+            return static_cast<int64_t>(value_.d);
 
-            case DataType::STRING:
-                return atoll(s_.c_str());
+        case DataType::STRING:
+            return atoll(s_.c_str());
         }
 
         assert(false);
@@ -196,20 +179,20 @@ public:
 
     uint64_t getUInt64() const {
         switch (valueType_) {
-            case DataType::SQLNULL:
-                return 0;
+        case DataType::SQLNULL:
+            return 0;
 
-            case DataType::SIGNED_INTEGER:
-                return static_cast<uint64_t>(value_.i64);
+        case DataType::SIGNED_INTEGER:
+            return static_cast<uint64_t>(value_.i64);
 
-            case DataType::UNSIGNED_INTEGER:
-                return value_.u64;
+        case DataType::UNSIGNED_INTEGER:
+            return value_.u64;
 
-            case DataType::DOUBLE:
-                return static_cast<uint64_t>(value_.d);
+        case DataType::DOUBLE:
+            return static_cast<uint64_t>(value_.d);
 
-            case DataType::STRING:
-                return atoll(s_.c_str());
+        case DataType::STRING:
+            return atoll(s_.c_str());
         }
 
         assert(false);
@@ -218,29 +201,27 @@ public:
 
     double getDouble() const {
         switch (valueType_) {
-            case DataType::SQLNULL:
-                return 0;
+        case DataType::SQLNULL:
+            return 0;
 
-            case DataType::SIGNED_INTEGER:
-                return static_cast<double>(value_.i64);
+        case DataType::SIGNED_INTEGER:
+            return static_cast<double>(value_.i64);
 
-            case DataType::UNSIGNED_INTEGER:
-                return static_cast<double>(value_.u64);
+        case DataType::UNSIGNED_INTEGER:
+            return static_cast<double>(value_.u64);
 
-            case DataType::DOUBLE:
-                return value_.d;
+        case DataType::DOUBLE:
+            return value_.d;
 
-            case DataType::STRING:
-                return atof(s_.c_str());
+        case DataType::STRING:
+            return atof(s_.c_str());
         }
 
         assert(false);
         return 0;
     }
 
-    const std::string &getString() const {
-        return s_;
-    }
+    const std::string& getString() const { return s_; }
 
 private:
     int valueType_;
@@ -261,43 +242,43 @@ private:
  */
 int mysqlTypeToDataType(int mysqlFieldType) {
     switch (mysqlFieldType) {
-        case MYSQL_TYPE_TINY:
-        case MYSQL_TYPE_SHORT:
-        case MYSQL_TYPE_INT24:
-        case MYSQL_TYPE_LONG:
-        case MYSQL_TYPE_LONGLONG:
-            return DataType::SIGNED_INTEGER;
+    case MYSQL_TYPE_TINY:
+    case MYSQL_TYPE_SHORT:
+    case MYSQL_TYPE_INT24:
+    case MYSQL_TYPE_LONG:
+    case MYSQL_TYPE_LONGLONG:
+        return DataType::SIGNED_INTEGER;
 
-        case MYSQL_TYPE_FLOAT:
-        case MYSQL_TYPE_DOUBLE:
-            return DataType::DOUBLE;
+    case MYSQL_TYPE_FLOAT:
+    case MYSQL_TYPE_DOUBLE:
+        return DataType::DOUBLE;
 
-        case MYSQL_TYPE_NULL:
-            return DataType::SQLNULL;
+    case MYSQL_TYPE_NULL:
+        return DataType::SQLNULL;
 
-        case MYSQL_TYPE_BIT:
-        case MYSQL_TYPE_DATE:
-        case MYSQL_TYPE_TIME:
-        case MYSQL_TYPE_YEAR:
-        case MYSQL_TYPE_DATETIME:
-        case MYSQL_TYPE_DECIMAL:
-        case MYSQL_TYPE_NEWDECIMAL:
-        case MYSQL_TYPE_TIMESTAMP:
-        case MYSQL_TYPE_TINY_BLOB:// should no appear over the wire
-        case MYSQL_TYPE_MEDIUM_BLOB:// should no appear over the wire
-        case MYSQL_TYPE_LONG_BLOB:// should no appear over the wire
-        case MYSQL_TYPE_BLOB:
-        case MYSQL_TYPE_VARCHAR:
-        case MYSQL_TYPE_VAR_STRING:
-        case MYSQL_TYPE_STRING:
-        case MYSQL_TYPE_JSON:
-        case MYSQL_TYPE_GEOMETRY:
-        case MYSQL_TYPE_ENUM:
-        case MYSQL_TYPE_SET:
-            return DataType::STRING;
+    case MYSQL_TYPE_BIT:
+    case MYSQL_TYPE_DATE:
+    case MYSQL_TYPE_TIME:
+    case MYSQL_TYPE_YEAR:
+    case MYSQL_TYPE_DATETIME:
+    case MYSQL_TYPE_DECIMAL:
+    case MYSQL_TYPE_NEWDECIMAL:
+    case MYSQL_TYPE_TIMESTAMP:
+    case MYSQL_TYPE_TINY_BLOB:    // should no appear over the wire
+    case MYSQL_TYPE_MEDIUM_BLOB:  // should no appear over the wire
+    case MYSQL_TYPE_LONG_BLOB:    // should no appear over the wire
+    case MYSQL_TYPE_BLOB:
+    case MYSQL_TYPE_VARCHAR:
+    case MYSQL_TYPE_VAR_STRING:
+    case MYSQL_TYPE_STRING:
+    case MYSQL_TYPE_JSON:
+    case MYSQL_TYPE_GEOMETRY:
+    case MYSQL_TYPE_ENUM:
+    case MYSQL_TYPE_SET:
+        return DataType::STRING;
 
-        default:
-            return DataType::UNKNOWN;
+    default:
+        return DataType::UNKNOWN;
     }
 }
 
@@ -308,26 +289,26 @@ int mysqlTypeToDataType(int mysqlFieldType) {
  */
 enum_field_types dataTypeToMysqlType(int dataType) {
     switch (dataType) {
-        case DataType::SIGNED_INTEGER:
-        case DataType::UNSIGNED_INTEGER:
-            return MYSQL_TYPE_LONGLONG;
+    case DataType::SIGNED_INTEGER:
+    case DataType::UNSIGNED_INTEGER:
+        return MYSQL_TYPE_LONGLONG;
 
-        case DataType::DOUBLE:
-            return MYSQL_TYPE_DOUBLE;
+    case DataType::DOUBLE:
+        return MYSQL_TYPE_DOUBLE;
 
-        case DataType::STRING:
-            return MYSQL_TYPE_VAR_STRING;
+    case DataType::STRING:
+        return MYSQL_TYPE_VAR_STRING;
 
-        case DataType::SQLNULL:
-            return MYSQL_TYPE_NULL;
+    case DataType::SQLNULL:
+        return MYSQL_TYPE_NULL;
 
-        case DataType::UNKNOWN:
-        default:
-            assert(false);
-            throw std::invalid_argument("unknown data type");
+    case DataType::UNKNOWN:
+    default:
+        assert(false);
+        throw std::invalid_argument(
+            fmt::format("unknown db data type: %d", dataType));
     }
 }
-
 
 /**
  * ResultSet的元数据信息
@@ -336,22 +317,22 @@ enum_field_types dataTypeToMysqlType(int dataType) {
  */
 class ResultMetaData {
 public:
-
     ResultMetaData() : fields_(nullptr), fieldCount_(0) {}
 
-    ResultMetaData(MYSQL_FIELD *fields, size_t fieldCount) : fields_(fields), fieldCount_(fieldCount) {
+    ResultMetaData(MYSQL_FIELD* fields, size_t fieldCount)
+        : fields_(fields), fieldCount_(fieldCount) {
         initNameIndex();
     }
 
-    ResultMetaData(const ResultMetaData &) = default;
+    ResultMetaData(const ResultMetaData&) = default;
 
-    ResultMetaData &operator=(const ResultMetaData &) = default;
+    ResultMetaData& operator=(const ResultMetaData&) = default;
 
-    ResultMetaData(ResultMetaData &&) = default;
+    ResultMetaData(ResultMetaData&&) = default;
 
-    ResultMetaData &operator=(ResultMetaData &&) = default;
+    ResultMetaData& operator=(ResultMetaData&&) = default;
 
-    void assign(MYSQL_FIELD *fields, int fieldCount) {
+    void assign(MYSQL_FIELD* fields, int fieldCount) {
         fields_ = fields;
         fieldCount_ = fieldCount;
         initNameIndex();
@@ -361,9 +342,7 @@ public:
      * 获取field的数量
      * @return
      */
-    size_t getFieldCount() const {
-        return fieldCount_;
-    }
+    size_t getFieldCount() const { return fieldCount_; }
 
     /**
      * 获取第index列的名字
@@ -373,7 +352,8 @@ public:
     std::string getFieldName(size_t index) const {
         if (index >= fieldCount_) {
             // 需要抛异常的时候，还是抛异常
-            throw std::out_of_range("out of range");
+            throw std::out_of_range(fmt::format("index %d out of range [0, %d)",
+                                                index, fieldCount_));
         }
 
         return fields_[index].name;
@@ -386,7 +366,9 @@ public:
      */
     int getFieldType(size_t index) const {
         if (index >= fieldCount_) {
-            throw std::out_of_range("out of range");
+            // 需要抛异常的时候，还是抛异常
+            throw std::out_of_range(fmt::format("index %d out of range [0, %d)",
+                                                index, fieldCount_));
         }
 
         return mysqlTypeToDataType(fields_[index].type);
@@ -399,7 +381,9 @@ public:
      */
     int getOrgFieldType(size_t index) const {
         if (index >= fieldCount_) {
-            throw std::out_of_range("out of range");
+            // 需要抛异常的时候，还是抛异常
+            throw std::out_of_range(fmt::format("index %d out of range [0, %d)",
+                                                index, fieldCount_));
         }
 
         return fields_[index].type;
@@ -423,7 +407,9 @@ public:
      */
     size_t getFieldMaxLength(size_t index) const {
         if (index >= fieldCount_) {
-            throw std::out_of_range("out of range");
+            // 需要抛异常的时候，还是抛异常
+            throw std::out_of_range(fmt::format("index %d out of range [0, %d)",
+                                                index, fieldCount_));
         }
 
         return fields_[index].max_length;
@@ -433,19 +419,18 @@ public:
      * 是否是有效的
      * @return
      */
-    bool isValid() const {
-        return fields_ != nullptr;
-    }
+    bool isValid() const { return fields_ != nullptr; }
 
-    size_t fieldNameToIndex(const std::string &name) const {
+    size_t fieldNameToIndex(const std::string& name) const {
         auto it = nameToIndex_.find(name);
         if (it == nameToIndex_.end()) {
-            throw std::out_of_range("name not found");
+            throw std::invalid_argument(
+                fmt::format("field name %s not found", name));
         }
         return it->second;
     }
 
-    void swap(ResultMetaData &other) {
+    void swap(ResultMetaData& other) {
         using std::swap;
         swap(fields_, other.fields_);
         swap(fieldCount_, other.fieldCount_);
@@ -465,7 +450,7 @@ private:
      * 指向 fields_ 数据的数组
      * @note 生命周期与ResultSet相同，不需要手动释放
      */
-    MYSQL_FIELD *fields_;
+    MYSQL_FIELD* fields_;
 
     /**
      * field数组的长度
@@ -475,11 +460,8 @@ private:
     std::map<std::string, size_t> nameToIndex_;
 };
 
-void swap(ResultMetaData &lhs, ResultMetaData &rhs) {
-    lhs.swap(rhs);
-}
+void swap(ResultMetaData& lhs, ResultMetaData& rhs) { lhs.swap(rhs); }
 
-}
+}  // namespace db
 
-
-#endif //MYSQL_CONNECTOR_RESULTMETADATA_H
+#endif  // MYSQL_CONNECTOR_RESULTMETADATA_H

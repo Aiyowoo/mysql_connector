@@ -27,4 +27,6 @@ void Status::clear() {
     message_.clear();
 }
 
+Status::Status() : Status(0) {}
+
 }  // namespace db

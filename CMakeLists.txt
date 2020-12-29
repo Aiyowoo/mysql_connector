@@ -8,6 +8,8 @@ option(WITH_DOC "generate documents" ON)
 
 find_package(fmt CONFIG REQUIRED)
 
+include_directories(${CMAKE_SOURCE_DIR}/include)
+
 add_library(mysql_connector src/Status.cpp include/Status.h
         src/Connection.cpp include/Connection.h include/DBConfig.h
         src/Statement.cpp include/Statement.h

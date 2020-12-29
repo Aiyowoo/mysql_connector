@@ -5,7 +5,7 @@
 #ifndef MYSQL_CONNECTOR_BIND_H
 #define MYSQL_CONNECTOR_BIND_H
 
-#include <fmt/format.h>
+#include <fmt/printf.h>
 #include <mysql/mysql.h>
 #include <stdlib.h>
 #include <string.h>
@@ -101,7 +101,7 @@ public:
     MYSQL_BIND* getBind(size_t index) const {
         if (index >= bindCount_) {
             throw std::out_of_range(
-                fmt::format("index %d out of range [0, %d)", 0, bindCount_));
+                fmt::sprintf("index %d out of range [0, %d)", 0, bindCount_));
         }
         return &binds_[index];
     }

@@ -5,6 +5,7 @@
 #ifndef MYSQL_CONNECTOR_CONNECTION_H
 #define MYSQL_CONNECTOR_CONNECTION_H
 
+#include <fmt/printf.h>
 #include <mysql/mysql.h>
 
 #include "DBConfig.h"
@@ -101,14 +102,15 @@ public:
      * @tparam Option
      * @param option
      * @param s
+     * @warning 需要在connect调用之前设置好需要设置的选项
      */
     template <typename Option> void setOption(const Option& option, Status& s) {
         s.clear();
         assert(conn_.valid());
 
         if (mysql_options(conn_.get(), option.name(), option.value()) != 0) {
-            s.assign(Status::ERROR,
-                     fmt::format("set option failed, %s", getLastError(conn_)));
+            s.assign(Status::ERROR, fmt::sprintf("set option failed, %s",
+                                                 getLastError(conn_)));
             return;
         }
     }
@@ -125,8 +127,8 @@ public:
 
         void* arg = nullptr;
         if (mysql_get_option(conn_.get(), option.name(), &arg) != 0) {
-            s.assign(Status::ERROR,
-                     fmt::format("get option failed, %s", getLastError(conn_)));
+            s.assign(Status::ERROR, fmt::sprintf("get option failed, %s",
+                                                 getLastError(conn_)));
             return;
         }
 
@@ -137,6 +139,8 @@ public:
      * 设置是否自动提交事务
      * @param autoCommit
      * @param s
+     *
+     * @note 需要在connect成功之后调用
      */
     void setAutoCommit(bool autoCommit, Status& s);
 

@@ -16,16 +16,17 @@ ResultSet Statement::executeQuery(const std::string& sql, Status& s) {
     }
 
     if (mysql_real_query(conn_.get(), sql.c_str(), sql.size()) != 0) {
-        s.assign(Status::RUNTIME_ERROR, fmt::format("execute sql failed, %s",
-                                                    getLastError(conn_.get())));
+        s.assign(
+            Status::RUNTIME_ERROR,
+            fmt::sprintf("execute sql failed, %s", getLastError(conn_.get())));
         return ResultSet();
     }
 
     MYSQL_RES* res = mysql_store_result(conn_.get());
     if (res == nullptr) {
         s.assign(Status::RUNTIME_ERROR,
-                 fmt::format("get query result failed, %s",
-                             getLastError(conn_.get())));
+                 fmt::sprintf("get query result failed, %s",
+                              getLastError(conn_.get())));
         return ResultSet();
     }
 
@@ -41,8 +42,9 @@ int Statement::executeUpdate(const std::string& sql, Status& s) {
     }
 
     if (mysql_real_query(conn_.get(), sql.c_str(), sql.size()) != 0) {
-        s.assign(Status::RUNTIME_ERROR, fmt::format("execute sql failed, %s",
-                                                    getLastError(conn_.get())));
+        s.assign(
+            Status::RUNTIME_ERROR,
+            fmt::sprintf("execute sql failed, %s", getLastError(conn_.get())));
         return -1;
     }
 
@@ -58,8 +60,9 @@ void Statement::execute(const std::string& sql, Status& s) {
     }
 
     if (mysql_real_query(conn_.get(), sql.c_str(), sql.size()) != 0) {
-        s.assign(Status::RUNTIME_ERROR, fmt::format("execute sql failed, %s",
-                                                    getLastError(conn_.get())));
+        s.assign(
+            Status::RUNTIME_ERROR,
+            fmt::sprintf("execute sql failed, %s", getLastError(conn_.get())));
         return;
     }
 }

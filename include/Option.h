@@ -23,13 +23,13 @@ public:
      * 获取选项名
      * @return
      */
-    int name() const { return OptionName; }
+    mysql_option name() const { return static_cast<mysql_option>(OptionName); }
 
     /**
      * 获取选项值
      * @return
      */
-    void* value() const { return &value_; }
+    const void* value() const { return &value_; }
 
     /**
      * 设置选项值
@@ -49,13 +49,13 @@ public:
      * 获取选项名
      * @return
      */
-    int name() const { return OptionName; }
+    mysql_option name() const { return static_cast<mysql_option>(OptionName); }
 
     /**
      * 获取选项值
      * @return
      */
-    void* value() const { return &value_; }
+    const void* value() const { return &value_; }
 
     /**
      * 设置选项值
@@ -75,13 +75,13 @@ public:
      * 获取选项名
      * @return
      */
-    int name() const { return OptionName; }
+    mysql_option name() const { return static_cast<mysql_option>(OptionName); }
 
     /**
      * 获取选项值
      * @return
      */
-    void* value() const { return value_.c_str(); }
+    const void* value() const { return value_.c_str(); }
 
     /**
      * 设置选项值
@@ -92,6 +92,9 @@ public:
 private:
     std::string value_;
 };
+
+using ConnectTimeout = IntegerOption<MYSQL_OPT_CONNECT_TIMEOUT>;
+using AutoReconnect = BoolOption<MYSQL_OPT_RECONNECT>;
 
 }  // namespace option
 

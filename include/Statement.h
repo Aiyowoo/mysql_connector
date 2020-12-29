@@ -5,7 +5,7 @@
 #ifndef MYSQL_CONNECTOR_STATEMENT_H
 #define MYSQL_CONNECTOR_STATEMENT_H
 
-#include <fmt/format.h>
+#include <fmt/printf.h>
 
 #include "ResultSet.h"
 #include "Status.h"

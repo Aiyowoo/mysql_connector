@@ -5,7 +5,7 @@
 #ifndef MYSQL_CONNECTOR_PREPAREDRESULTSET_H
 #define MYSQL_CONNECTOR_PREPAREDRESULTSET_H
 
-#include <fmt/format.h>
+#include <fmt/printf.h>
 #include <mysql/mysql.h>
 
 #include <memory>
@@ -162,12 +162,12 @@ private:
         MYSQL_RES* res = mysql_stmt_result_metadata(stmt_);
         if (res == nullptr) {
             throw std::runtime_error(
-                fmt::format("can't get result set, %s", getLastError(stmt_)));
+                fmt::sprintf("can't get result set, %s", getLastError(stmt_)));
         }
 
         MYSQL_FIELD* fields = mysql_fetch_fields(res);
         if (fields == nullptr) {
-            throw std::runtime_error(fmt::format(
+            throw std::runtime_error(fmt::sprintf(
                 "can't get result field info, %s", getLastError(stmt_)));
         }
         size_t fieldCount = mysql_num_fields(res);
@@ -177,7 +177,7 @@ private:
 
         if (!mysql_stmt_bind_result(stmt_, resultBinds_.getBinds())) {
             throw std::runtime_error(
-                fmt::format("can't bind results, %s", getLastError(stmt_)));
+                fmt::sprintf("can't bind results, %s", getLastError(stmt_)));
         }
     }
 
@@ -201,7 +201,9 @@ private:
     Bind resultBinds_;
 };
 
-void swap(PreparedResultSet& lhs, PreparedResultSet& rhs) { lhs.swap(rhs); }
+inline void swap(PreparedResultSet& lhs, PreparedResultSet& rhs) {
+    lhs.swap(rhs);
+}
 
 }  // namespace db
 

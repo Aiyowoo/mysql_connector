@@ -6,7 +6,7 @@
 #define MYSQL_CONNECTOR_RESULTMETADATA_H
 
 #include <assert.h>
-#include <fmt/format.h>
+#include <fmt/printf.h>
 #include <mysql/mysql.h>
 #include <mysql/mysql_com.h>
 #include <stdint.h>
@@ -240,7 +240,7 @@ private:
  * @param mysqlFieldType
  * @return
  */
-int mysqlTypeToDataType(int mysqlFieldType) {
+inline int mysqlTypeToDataType(int mysqlFieldType) {
     switch (mysqlFieldType) {
     case MYSQL_TYPE_TINY:
     case MYSQL_TYPE_SHORT:
@@ -287,7 +287,7 @@ int mysqlTypeToDataType(int mysqlFieldType) {
  * @param dataType
  * @return
  */
-enum_field_types dataTypeToMysqlType(int dataType) {
+inline enum_field_types dataTypeToMysqlType(int dataType) {
     switch (dataType) {
     case DataType::SIGNED_INTEGER:
     case DataType::UNSIGNED_INTEGER:
@@ -306,7 +306,7 @@ enum_field_types dataTypeToMysqlType(int dataType) {
     default:
         assert(false);
         throw std::invalid_argument(
-            fmt::format("unknown db data type: %d", dataType));
+            fmt::sprintf("unknown db data type: %d", dataType));
     }
 }
 
@@ -352,8 +352,8 @@ public:
     std::string getFieldName(size_t index) const {
         if (index >= fieldCount_) {
             // 需要抛异常的时候，还是抛异常
-            throw std::out_of_range(fmt::format("index %d out of range [0, %d)",
-                                                index, fieldCount_));
+            throw std::out_of_range(fmt::sprintf(
+                "index %d out of range [0, %d)", index, fieldCount_));
         }
 
         return fields_[index].name;
@@ -367,8 +367,8 @@ public:
     int getFieldType(size_t index) const {
         if (index >= fieldCount_) {
             // 需要抛异常的时候，还是抛异常
-            throw std::out_of_range(fmt::format("index %d out of range [0, %d)",
-                                                index, fieldCount_));
+            throw std::out_of_range(fmt::sprintf(
+                "index %d out of range [0, %d)", index, fieldCount_));
         }
 
         return mysqlTypeToDataType(fields_[index].type);
@@ -382,8 +382,8 @@ public:
     int getOrgFieldType(size_t index) const {
         if (index >= fieldCount_) {
             // 需要抛异常的时候，还是抛异常
-            throw std::out_of_range(fmt::format("index %d out of range [0, %d)",
-                                                index, fieldCount_));
+            throw std::out_of_range(fmt::sprintf(
+                "index %d out of range [0, %d)", index, fieldCount_));
         }
 
         return fields_[index].type;
@@ -408,8 +408,8 @@ public:
     size_t getFieldMaxLength(size_t index) const {
         if (index >= fieldCount_) {
             // 需要抛异常的时候，还是抛异常
-            throw std::out_of_range(fmt::format("index %d out of range [0, %d)",
-                                                index, fieldCount_));
+            throw std::out_of_range(fmt::sprintf(
+                "index %d out of range [0, %d)", index, fieldCount_));
         }
 
         return fields_[index].max_length;
@@ -425,7 +425,7 @@ public:
         auto it = nameToIndex_.find(name);
         if (it == nameToIndex_.end()) {
             throw std::invalid_argument(
-                fmt::format("field name %s not found", name));
+                fmt::sprintf("field name %s not found", name));
         }
         return it->second;
     }
@@ -460,7 +460,7 @@ private:
     std::map<std::string, size_t> nameToIndex_;
 };
 
-void swap(ResultMetaData& lhs, ResultMetaData& rhs) { lhs.swap(rhs); }
+inline void swap(ResultMetaData& lhs, ResultMetaData& rhs) { lhs.swap(rhs); }
 
 }  // namespace db
 

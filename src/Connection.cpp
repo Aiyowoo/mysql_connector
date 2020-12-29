@@ -44,11 +44,12 @@ void Connection::connect(const std::string& host, unsigned short port,
                                       password.c_str(), nullptr, port, nullptr,
                                       0)) {
         s.assign(Status::RUNTIME_ERROR,
-                 fmt::format("failed to connect to %s@%s due to %s", user, host,
-                             getLastError(conn_.get())));
+                 fmt::sprintf("failed to connect to %s@%s due to %s", user,
+                              host, getLastError(conn_.get())));
         return;
     }
 
+    connected_ = true;
     setAutoCommit(true, s);
 }
 
@@ -85,8 +86,8 @@ PreparedStatement Connection::prepareStatement(const std::string& sql,
 
     PreparedStatement stmt(mysql_stmt_init(conn_.get()));
     if (!stmt.valid()) {
-        s.assign(Status::ERROR, fmt::format("create stmt failed, %s",
-                                            getLastError(conn_.get())));
+        s.assign(Status::ERROR, fmt::sprintf("create stmt failed, %s",
+                                             getLastError(conn_.get())));
         return stmt;
     }
     return stmt;
@@ -102,7 +103,7 @@ void Connection::selectSchema(const std::string& schema, Status& s) {
 
     if (mysql_select_db(conn_.get(), schema.c_str()) != 0) {
         s.assign(Status::ERROR,
-                 fmt::format("select db failed, %s", getLastError(conn_)));
+                 fmt::sprintf("select db failed, %s", getLastError(conn_)));
         return;
     }
 }
@@ -115,10 +116,10 @@ void Connection::setAutoCommit(bool autoCommit, Status& s) {
         return;
     }
 
-    if (!mysql_autocommit(conn_.get(), autoCommit) != 0) {
+    if (mysql_autocommit(conn_.get(), autoCommit) != 0) {
         s.assign(
             Status::RUNTIME_ERROR,
-            fmt::format("set auto commit failed, %s", getLastError(conn_)));
+            fmt::sprintf("set auto commit failed, %s", getLastError(conn_)));
         return;
     }
 

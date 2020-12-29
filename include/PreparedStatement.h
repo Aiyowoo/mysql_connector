@@ -80,8 +80,8 @@ public:
         }
 
         if (mysql_stmt_execute(stmt_.get()) != 0) {
-            s.assign(Status::ERROR, fmt::format("statement execute failed, ",
-                                                getLastError(stmt_.get())));
+            s.assign(Status::ERROR, fmt::sprintf("statement execute failed, ",
+                                                 getLastError(stmt_.get())));
             return;
         }
     }
@@ -146,12 +146,12 @@ private:
         params_.setValue(index, std::forward<T>(val));
         if (index + 1 != params_.getBindCount()) {
             throw std::invalid_argument(
-                fmt::format("params count %d not match expected %d", index + 1,
-                            params_.getBindCount()));
+                fmt::sprintf("params count %d not match expected %d", index + 1,
+                             params_.getBindCount()));
         }
 
         if (!mysql_stmt_bind_param(stmt_.get(), params_.getBinds())) {
-            throw std::runtime_error(fmt::format(
+            throw std::runtime_error(fmt::sprintf(
                 "failed to bind parameters, %s", getLastError(stmt_)));
         }
     }
@@ -161,16 +161,16 @@ private:
 
         if (index != params_.getBindCount()) {
             s.assign(Status::ERROR,
-                     fmt::format("params count %d not match expected %d",
-                                 index + 1, params_.getBindCount()));
+                     fmt::sprintf("params count %d not match expected %d",
+                                  index + 1, params_.getBindCount()));
             return;
         }
 
         if (!mysql_stmt_bind_param(stmt_.get(), params_.getBinds())) {
             throw std::runtime_error("failed to bind params");
             s.assign(Status::RUNTIME_ERROR,
-                     fmt::format("failed to bind parameters, %s",
-                                 getLastError(stmt_)));
+                     fmt::sprintf("failed to bind parameters, %s",
+                                  getLastError(stmt_)));
         }
     }
 

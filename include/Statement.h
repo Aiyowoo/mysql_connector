@@ -76,6 +76,7 @@ public:
      * 获取收到影响的行数
      * @return      返回上次执行update/delete sql语句后，收到影响的行
      * @throws      如果获取失败，会抛出异常
+     * @note        可以调用多次，都是最后一次执行的结果
      */
     int64_t getAffectedRowCount();
 

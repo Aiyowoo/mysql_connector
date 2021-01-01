@@ -66,9 +66,10 @@ public:
         binds_ = new MYSQL_BIND[bindCount_];
         for (int i = 0; i < bindCount_; ++i) {
             memset(&binds_[i], 0, sizeof(MYSQL_BIND));
-            int maxLen = metaData.getFieldMaxLength(i) + 1;
-            binds_[i].buffer = new char[maxLen];
-            binds_[i].buffer_length = maxLen;
+
+            auto p = allocateBuffer(metaData.getOrgFieldType(i), metaData.getFieldMaxLength(i));
+            binds_[i].buffer = p.first;
+            binds_[i].buffer_length = p.second;
 
             binds_[i].length = new unsigned long;
             *binds_[i].length = 0;
@@ -87,11 +88,10 @@ public:
         }
 
         for (int i = 0; i < bindCount_; ++i) {
-            if (binds_[i].buffer) {
-                clearAllocatedBuffer(&binds_[i]);
-            }
+            clearAllocatedBuffer(&binds_[i]);
         }
         delete binds_;
+        binds_ = nullptr;
     }
 
     MYSQL_BIND* getBinds() const { return binds_; }
@@ -150,7 +150,7 @@ public:
 
         clearAllocatedBuffer(&binds_[index]);
         binds_[index].buffer = ptr;
-        binds_[index].buffer_length = 0;
+        binds_[index].buffer_length = value.size();
         binds_[index].buffer_type = dataTypeToMysqlType(DataType::STRING);
         binds_[index].is_null_value = 0;
     }
@@ -199,8 +199,55 @@ public:
         }
 
         case DataType::STRING: {
-            char* ptr = reinterpret_cast<char*>(bind->buffer);
-            std::string val(ptr, ptr + *bind->length);
+            // 如果是Time类型的要做特殊处理
+            std::string val;
+            switch (bind->buffer_type) {
+            case MYSQL_TYPE_DATE: {
+                MYSQL_TIME* time = reinterpret_cast<MYSQL_TIME*>(bind->buffer);
+                assert(time);
+                val = fmt::sprintf("%04d-%02d-%02d", time->year, time->month,
+                                   time->day);
+                break;
+            }
+
+            case MYSQL_TYPE_TIME: {
+                MYSQL_TIME* time = reinterpret_cast<MYSQL_TIME*>(bind->buffer);
+                assert(time);
+                if (time->second_part) {
+                    val = fmt::sprintf("%s%02d:%02d:%02d.%06lu",
+                                       time->neg ? "-" : "", time->hour,
+                                       time->minute, time->second,
+                                       time->second_part);
+                } else {
+                    val = fmt::sprintf("%s%02d:%02d:%02d", time->neg ? "-" : "",
+                                       time->hour, time->minute, time->second);
+                }
+                break;
+            }
+
+            case MYSQL_TYPE_TIMESTAMP:
+            case MYSQL_TYPE_DATETIME: {
+                MYSQL_TIME* time = reinterpret_cast<MYSQL_TIME*>(bind->buffer);
+                assert(time);
+                if (time->second_part) {
+                    val = fmt::sprintf("%04d-%02d-%02d %02d:%02d:%02d.%06lu",
+                                       time->year, time->month, time->day,
+                                       time->hour, time->minute, time->second,
+                                       time->second_part);
+                } else {
+                    val = fmt::sprintf("%04d-%02d-%02d %02d:%02d:%02d",
+                                       time->year, time->month, time->day,
+                                       time->hour, time->minute, time->second);
+                }
+                break;
+            }
+            default: {
+                char* ptr = reinterpret_cast<char*>(bind->buffer);
+                val.assign(ptr, ptr + *bind->length);
+                break;
+            }
+            }
+
             return Value(val);
         }
 
@@ -228,6 +275,26 @@ private:
         if (index >= bindCount_) {
             throw std::out_of_range("out of range");
         }
+    }
+
+    std::pair<char*, size_t> allocateBuffer(int mysqlFieldType, int maxLen) {
+        char* buffer = nullptr;
+        size_t bufferLen = 0;
+        switch (mysqlFieldType) {
+        case MYSQL_TYPE_TIMESTAMP:
+        case MYSQL_TYPE_DATE:
+        case MYSQL_TYPE_TIME:
+        case MYSQL_TYPE_DATETIME:
+            buffer = new char[sizeof(MYSQL_TIME)];
+            bufferLen = sizeof(MYSQL_TIME);
+            break;
+
+        default:
+            buffer = new char[maxLen + 8];
+            bufferLen = maxLen + 8;
+            break;
+        }
+        return std::make_pair(buffer, bufferLen);
     }
 
     void clearAllocatedBuffer(MYSQL_BIND* bind) {

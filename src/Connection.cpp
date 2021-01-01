@@ -28,6 +28,12 @@ Connection::~Connection() { close(); }
 void Connection::connect(const std::string& host, unsigned short port,
                          const std::string& user, const std::string& password,
                          Status& s) {
+    connect(host, port, user, password, "", s);
+}
+
+void Connection::connect(const std::string& host, unsigned short port,
+                         const std::string& user, const std::string& password,
+                         const std::string& schema, Status& s) {
     s.clear();
 
     if (connected()) {
@@ -41,8 +47,9 @@ void Connection::connect(const std::string& host, unsigned short port,
     }
 
     if (nullptr == mysql_real_connect(conn_.get(), host.c_str(), user.c_str(),
-                                      password.c_str(), nullptr, port, nullptr,
-                                      0)) {
+                                      password.c_str(),
+                                      schema.empty() ? nullptr : schema.c_str(),
+                                      port, nullptr, 0)) {
         s.assign(Status::RUNTIME_ERROR,
                  fmt::sprintf("failed to connect to %s@%s due to %s", user,
                               host, getLastError(conn_.get())));
@@ -90,6 +97,21 @@ PreparedStatement Connection::prepareStatement(const std::string& sql,
                                              getLastError(conn_.get())));
         return stmt;
     }
+
+    if (mysql_stmt_prepare(stmt.get(), sql.c_str(), sql.size()) != 0) {
+        s.assign(Status::ERROR, fmt::sprintf("prepare stmt failed, %s",
+                                             getLastError(stmt.get())));
+        return PreparedStatement();
+    }
+
+    my_bool on = true;
+    if (mysql_stmt_attr_set(stmt.get(), STMT_ATTR_UPDATE_MAX_LENGTH, &on) !=
+        0) {
+        s.assign(Status::ERROR, fmt::sprintf("update stmt option failed, %s",
+                                             getLastError(stmt.get())));
+        return PreparedStatement();
+    }
+
     return stmt;
 }
 

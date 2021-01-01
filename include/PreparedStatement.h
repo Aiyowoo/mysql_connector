@@ -23,7 +23,7 @@ namespace db {
  */
 class PreparedStatement {
 public:
-    PreparedStatement(MYSQL_STMT* stmt = nullptr) : stmt_(stmt) {}
+    explicit PreparedStatement(MYSQL_STMT* stmt = nullptr) : stmt_(stmt) {}
 
     PreparedStatement(const PreparedStatement&) = delete;
 
@@ -90,7 +90,7 @@ public:
      * 获取execute执行后，影响到的行数
      * @return
      */
-    int64_t getAffectedRowsCount() {
+    int64_t getAffectedRowCount() {
         checkValid();
         return mysql_stmt_affected_rows(stmt_.get());
     }
@@ -121,6 +121,8 @@ public:
      */
     void close() { stmt_.close(); }
 
+    MYSQL_STMT* get() const { return stmt_.get(); }
+
 private:
     void checkValid() const {
         if (!valid()) {
@@ -150,13 +152,13 @@ private:
                              params_.getBindCount()));
         }
 
-        if (!mysql_stmt_bind_param(stmt_.get(), params_.getBinds())) {
+        if (mysql_stmt_bind_param(stmt_.get(), params_.getBinds()) != 0) {
             throw std::runtime_error(fmt::sprintf(
                 "failed to bind parameters, %s", getLastError(stmt_)));
         }
     }
 
-    template <typename T> void bindParams(int index, Status& s) {
+    void bindParams(int index, Status& s) {
         s.clear();
 
         if (index != params_.getBindCount()) {
@@ -166,8 +168,7 @@ private:
             return;
         }
 
-        if (!mysql_stmt_bind_param(stmt_.get(), params_.getBinds())) {
-            throw std::runtime_error("failed to bind params");
+        if (mysql_stmt_bind_param(stmt_.get(), params_.getBinds()) != 0) {
             s.assign(Status::RUNTIME_ERROR,
                      fmt::sprintf("failed to bind parameters, %s",
                                   getLastError(stmt_)));

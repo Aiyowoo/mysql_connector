@@ -46,7 +46,7 @@ public:
     ~Connection();
 
     /**
-     * 链接到数据库
+     * 连接到数据库
      * @param host      mysql服务器ip地址
      * @param port      mysql服务端口号，0的话为默认值
      * @param user      用户名
@@ -56,6 +56,19 @@ public:
     void connect(const std::string& host, unsigned short port,
                  const std::string& user, const std::string& password,
                  Status& s);
+
+    /**
+     * 连接到数据库
+     * @param host          mysql服务器ip地址
+     * @param port          mysql服务端口号，0的话为默认值
+     * @param user          用户名
+     * @param password      密码
+     * @param db            schema
+     * @param s             是否成功
+     */
+    void connect(const std::string &host, unsigned short port,
+                 const std::string &user, const std::string &password,
+                 const std::string &schema, Status &s);
 
     /**
      * 关闭链接，并释放资源

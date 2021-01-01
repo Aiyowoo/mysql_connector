@@ -52,7 +52,7 @@ public:
      * 是否有效，是否含有数据
      * @return
      */
-    bool isValid() { return stmt_ != nullptr; }
+    bool valid() { return stmt_ != nullptr; }
 
     const ResultMetaData& getMetaData() const { return metaData_; }
 
@@ -67,7 +67,7 @@ public:
      * @return true-有下一行
      */
     bool next() {
-        if (!isValid()) {
+        if (!valid()) {
             return false;
         }
 
@@ -89,7 +89,7 @@ public:
      * 回绕到第一行之前
      */
     void rewind() {
-        if (!isValid()) {
+        if (!valid()) {
             throw std::runtime_error("result set is invalid");
         }
 
@@ -103,6 +103,8 @@ public:
      * @return
      */
     std::string getString(size_t index) const {
+        checkRequestValid(index);
+
         return resultBinds_.getValue(index).getString();
     }
 
@@ -112,10 +114,12 @@ public:
      * @return
      */
     std::string getString(const std::string& name) const {
-        return resultBinds_.getValue(fieldNameToIndex(name)).getString();
+        return getString(fieldNameToIndex(name));
     }
 
     int32_t getInt32(size_t index) const {
+        checkRequestValid(index);
+
         return resultBinds_.getValue(index).getInt64();
     }
 
@@ -124,6 +128,7 @@ public:
     }
 
     int64_t getInt64(size_t index) const {
+        checkRequestValid(index);
         return resultBinds_.getValue(index).getInt64();
     }
 
@@ -132,6 +137,8 @@ public:
     }
 
     double getDouble(size_t index) const {
+        checkRequestValid(index);
+
         return resultBinds_.getValue(index).getDouble();
     }
 
@@ -139,7 +146,10 @@ public:
         return getDouble(fieldNameToIndex(name));
     }
 
-    Value getValue(size_t index) const { return resultBinds_.getValue(index); }
+    Value getValue(size_t index) const {
+        checkRequestValid(index);
+        return resultBinds_.getValue(index);
+    }
 
     Value getValue(const std::string& name) const {
         return getValue(fieldNameToIndex(name));
@@ -159,23 +169,28 @@ private:
             return;
         }
 
-        MYSQL_RES* res = mysql_stmt_result_metadata(stmt_);
-        if (res == nullptr) {
+        if (mysql_stmt_store_result(stmt_) != 0) {
+            throw std::runtime_error(fmt::sprintf(
+                "store result set to local failed, %s", getLastError(stmt_)));
+        }
+
+        resultSetHandler_.assign(mysql_stmt_result_metadata(stmt_));
+        if (!resultSetHandler_.valid()) {
             throw std::runtime_error(
                 fmt::sprintf("can't get result set, %s", getLastError(stmt_)));
         }
 
-        MYSQL_FIELD* fields = mysql_fetch_fields(res);
+        MYSQL_FIELD* fields = mysql_fetch_fields(resultSetHandler_.get());
         if (fields == nullptr) {
             throw std::runtime_error(fmt::sprintf(
                 "can't get result field info, %s", getLastError(stmt_)));
         }
-        size_t fieldCount = mysql_num_fields(res);
+        size_t fieldCount = mysql_num_fields(resultSetHandler_.get());
         metaData_.assign(fields, fieldCount);
 
         resultBinds_.assign(metaData_);
 
-        if (!mysql_stmt_bind_result(stmt_, resultBinds_.getBinds())) {
+        if (mysql_stmt_bind_result(stmt_, resultBinds_.getBinds()) != 0) {
             throw std::runtime_error(
                 fmt::sprintf("can't bind results, %s", getLastError(stmt_)));
         }
@@ -183,6 +198,19 @@ private:
 
     size_t fieldNameToIndex(const std::string& name) const {
         return metaData_.fieldNameToIndex(name);
+    }
+
+    void checkRequestValid(size_t index) const {
+        if (index >= resultBinds_.getBindCount()) {
+            throw std::runtime_error(
+                fmt::sprintf("index %d out of range [0, %d)", index,
+                             resultBinds_.getBindCount()));
+        }
+
+        // 判断是否调用了next
+        if (currentRowPos_ == -1) {
+            throw std::runtime_error("not data, or forget to invoke next()?");
+        }
     }
 
 private:
@@ -197,6 +225,8 @@ private:
      * 元数据
      */
     ResultMetaData metaData_;
+
+    ResultSetHandler resultSetHandler_;
 
     Bind resultBinds_;
 };

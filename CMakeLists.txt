@@ -16,7 +16,7 @@ add_library(mysql_connector src/Status.cpp include/Status.h
         src/PreparedStatement.cpp include/PreparedStatement.h
         src/ResultSet.cpp include/ResultSet.h
         src/PreparedResultSet.cpp include/PreparedResultSet.h
-        src/ResultMetaData.cpp include/ResultMetaData.h include/Handler.h include/Option.h include/Util.h include/Bind.h test/ConnectionTest.cpp)
+        src/ResultMetaData.cpp include/ResultMetaData.h include/Handler.h include/Option.h include/Util.h include/Bind.h test/ConnectionTest.cpp include/ConnectionPool.h)
 target_link_libraries(mysql_connector PRIVATE fmt::fmt-header-only)
 
 if (${WITH_TEST})

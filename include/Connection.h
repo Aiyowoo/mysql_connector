@@ -66,9 +66,9 @@ public:
      * @param db            schema
      * @param s             是否成功
      */
-    void connect(const std::string &host, unsigned short port,
-                 const std::string &user, const std::string &password,
-                 const std::string &schema, Status &s);
+    void connect(const std::string& host, unsigned short port,
+                 const std::string& user, const std::string& password,
+                 const std::string& schema, Status& s);
 
     /**
      * 关闭链接，并释放资源
@@ -117,7 +117,8 @@ public:
      * @param s
      * @warning 需要在connect调用之前设置好需要设置的选项
      */
-    template <typename Option> void setOption(const Option& option, Status& s) {
+    template <typename Option>
+    void setOption(const Option& option, Status& s) {
         s.clear();
         assert(conn_.valid());
 
@@ -134,7 +135,8 @@ public:
      * @param option
      * @param s
      */
-    template <typename Option> void getOption(Option& option, Status& s) {
+    template <typename Option>
+    void getOption(Option& option, Status& s) {
         s.clear();
         assert(conn_.valid());
 

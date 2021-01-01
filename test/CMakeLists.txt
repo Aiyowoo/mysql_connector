@@ -7,5 +7,5 @@ find_package(GTest CONFIG REQUIRED)
 # target_link_libraries(main PRIVATE GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main)
 
 add_executable(db_test
-        ConnectionTest.cpp StatementTest.cpp PreparedStatementTest.cpp)
-target_link_libraries(db_test PRIVATE GTest::gtest GTest::gtest_main mysql_connector mysqlclient)
+        ConnectionTest.cpp StatementTest.cpp PreparedStatementTest.cpp ConnectionPoolTest.cpp)
+target_link_libraries(db_test PRIVATE GTest::gtest GTest::gtest_main mysql_connector mysqlclient pthread)

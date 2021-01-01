@@ -15,7 +15,8 @@ namespace option {
 
 enum OptionName { AUTO_RECONNECT = 0 };
 
-template <int OptionName> class BoolOption {
+template <int OptionName>
+class BoolOption {
 public:
     BoolOption(bool value) : value_(value) {}
 
@@ -41,7 +42,8 @@ private:
     my_bool value_;
 };
 
-template <int OptionName> class IntegerOption {
+template <int OptionName>
+class IntegerOption {
 public:
     IntegerOption(int value) : value_(value) {}
 
@@ -67,7 +69,8 @@ private:
     int32_t value_;
 };
 
-template <int OptionName> class StringOption {
+template <int OptionName>
+class StringOption {
 public:
     StringOption(const std::string& value) : value_(value) {}
 

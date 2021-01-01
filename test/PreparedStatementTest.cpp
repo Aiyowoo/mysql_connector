@@ -183,13 +183,13 @@ TEST_F(ValidPreparedStatement, rewind) {
     ASSERT_TRUE(resultSet.valid());
 
     int originalRowCount = 0;
-    while(resultSet.next()) {
+    while (resultSet.next()) {
         ++originalRowCount;
     }
 
     resultSet.rewind();
     int count = 0;
-    while(resultSet.next()) {
+    while (resultSet.next()) {
         ++count;
     }
     ASSERT_EQ(count, originalRowCount);

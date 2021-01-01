@@ -67,7 +67,8 @@ public:
         for (int i = 0; i < bindCount_; ++i) {
             memset(&binds_[i], 0, sizeof(MYSQL_BIND));
 
-            auto p = allocateBuffer(metaData.getOrgFieldType(i), metaData.getFieldMaxLength(i));
+            auto p = allocateBuffer(metaData.getOrgFieldType(i),
+                                    metaData.getFieldMaxLength(i));
             binds_[i].buffer = p.first;
             binds_[i].buffer_length = p.second;
 

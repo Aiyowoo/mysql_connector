@@ -139,6 +139,8 @@ TEST_F(ValidStatementTest, executeUpdate) {
 
 TEST_F(ValidStatementTest, execute) {
     Status s;
+    statement_->execute("update t_person set name = 'nice1' where id = 2", s);
+
     statement_->execute("update t_person set name = 'nice' where id = 2", s);
     ASSERT_TRUE(s);
 

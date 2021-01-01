@@ -52,7 +52,8 @@ public:
      * @return
      * @throws 会抛异常
      */
-    template <typename... Args> void bind(Args&&... args) {
+    template <typename... Args>
+    void bind(Args&&... args) {
         checkValid();
 
         size_t paramCount = mysql_stmt_param_count(stmt_.get());
@@ -144,7 +145,8 @@ private:
         bindParams(index + 1, std::forward<Args>(args)...);
     }
 
-    template <typename T> void bindParams(int index, T&& val) {
+    template <typename T>
+    void bindParams(int index, T&& val) {
         params_.setValue(index, std::forward<T>(val));
         if (index + 1 != params_.getBindCount()) {
             throw std::invalid_argument(

@@ -4,7 +4,7 @@ Language: Cpp
 BasedOnStyle: Google
 IndentPPDirectives: AfterHash
 IndentCaseLabels: false
-AlwaysBreakTemplateDeclarations: false
+AlwaysBreakTemplateDeclarations: true
 DerivePointerAlignment: false
 TabWidth: 4
 IndentWidth: 4

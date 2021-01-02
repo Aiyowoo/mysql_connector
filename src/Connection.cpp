@@ -150,6 +150,9 @@ void Connection::setAutoCommit(bool autoCommit, Status& s) {
 
 bool Connection::getAutoCommit(Status& s) { return autoCommit_; }
 
-void Connection::initializeHandler() { conn_.assign(mysql_init(nullptr)); }
+void Connection::initializeHandler() {
+    static MysqlLibraryInitializer initializer;
+    conn_.assign(mysql_init(nullptr));
+}
 
 }  // namespace db

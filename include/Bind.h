@@ -91,7 +91,7 @@ public:
         for (int i = 0; i < bindCount_; ++i) {
             clearAllocatedBuffer(&binds_[i]);
         }
-        delete binds_;
+        delete [] binds_;
         binds_ = nullptr;
     }
 

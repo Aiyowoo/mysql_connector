@@ -4,3 +4,5 @@
 /doc/html/**
 /doc/latex
 /doc/latex/**
+/cmake-build-debug-coverage/
+/cmake-build-debug-coverage/**

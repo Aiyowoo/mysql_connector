@@ -66,7 +66,7 @@ private:
  *
  * 管理一组到mysql服务器的链接
  */
-class ConnectionPool : std::enable_shared_from_this<ConnectionPool> {
+class ConnectionPool : public std::enable_shared_from_this<ConnectionPool> {
     /**
      * 连接到服务器的配置信息
      */
@@ -232,7 +232,8 @@ public:
             return ConnectionPtr();
         }
 
-        ConnectionPtr ptr(weak_from_this(), connections_.front());
+        std::weak_ptr<ConnectionPool> weakPtr = shared_from_this();
+        ConnectionPtr ptr(weakPtr, connections_.front());
         connections_.pop_front();
 
         return ptr;

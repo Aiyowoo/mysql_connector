@@ -62,20 +62,22 @@ TEST(ConnectionPoolTest, waitConnection) {
 }
 
 TEST(ConnectionPoolTest, revokeConnection) {
-    ConnectionPoolPtr pool = std::make_shared<ConnectionPool>(1);
-    Status s;
-    pool->connect("127.0.0.1", 0, "root", "wylj", s);
-    ASSERT_TRUE(s);
+    {
+        ConnectionPoolPtr pool = std::make_shared<ConnectionPool>(1);
+        Status s;
+        pool->connect("127.0.0.1", 0, "root", "wylj", s);
+        ASSERT_TRUE(s);
 
-    std::thread([pool]() {
-        ASSERT_EQ(1, pool->getConnectionCount());
-        ConnectionPtr ptr = pool->getConnection();
-        ASSERT_TRUE(bool(ptr));
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-    }).detach();
+        std::thread([pool]() {
+            ASSERT_EQ(1, pool->getConnectionCount());
+            ConnectionPtr ptr = pool->getConnection();
+            ASSERT_TRUE(bool(ptr));
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+        }).detach();
 
-    ConnectionPtr conn = pool->getConnection();
-    ASSERT_TRUE(bool(conn));
+        ConnectionPtr conn = pool->getConnection();
+        ASSERT_TRUE(bool(conn));
+    }
 }
 
 TEST(ConnectionPoolTest, resizeAndWait) {
@@ -94,4 +96,22 @@ TEST(ConnectionPoolTest, resizeAndWait) {
 
     ConnectionPtr conn = pool->getConnection();
     ASSERT_TRUE(bool(conn));
+}
+
+TEST(ConnectionPoolTest, connectionPtrRelease) {
+    ConnectionPoolPtr pool = std::make_shared<ConnectionPool>(1);
+    Status s;
+    pool->connect("127.0.0.1", 0, "root", "wylj", s);
+    ASSERT_TRUE(s);
+    ConnectionPtr ptr = pool->getConnection();
+    ASSERT_TRUE(bool(ptr));
+    ptr.release();
+}
+
+TEST(ConnectionPoolTest, theadMayLeak) {
+    std::shared_ptr<int> ptr = std::make_shared<int>(1);
+    std::thread([ptr] {
+        std::cout << *ptr << std::endl;
+    }).detach();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 }

@@ -32,6 +32,20 @@ public:
         SERIALIZABLE = 4       // 串行化
     };
 
+private:
+    class MysqlLibraryInitializer {
+    public:
+        MysqlLibraryInitializer() {
+            if(mysql_library_init(0, nullptr, nullptr) != 0) {
+                throw std::runtime_error("failed to initialize mysql library");
+            }
+        }
+
+        ~MysqlLibraryInitializer() {
+            mysql_library_end();
+        }
+    };
+
 public:
     Connection();
 
